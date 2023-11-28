@@ -18,6 +18,7 @@ import pymongo
 import logging
 import os
 import pickle
+import urllib.parse
 # from dotenv import load_dotenv
 # load_dotenv()
 USERINFO = {}  # holds user information
@@ -58,11 +59,11 @@ else:
     BOT_STATUS = {"status": "ON"}
 
 # %% MONGODB CONNECTION
-CONNECTION_STRING = os.environ.get("DB_URI")
+CONNECTION_STRING = os.environ.get("DB_URI") + "&retrywrites=false"
 myclient = pymongo.MongoClient(CONNECTION_STRING)
 mydb = myclient["airdrop"]
 users = mydb["users"]
-users.create_index([('ref', pymongo.TEXT)], name='search_index', default_language='english')
+users.create_index('ref', name='search_index')
 users.create_index("userId")
 # %% Setting up things
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
