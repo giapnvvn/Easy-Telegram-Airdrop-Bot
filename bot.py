@@ -41,6 +41,8 @@ ADMIN_USERNAME = os.environ["ADMIN_USERNAME"]
 TWITTER_LINKS = os.environ["TWITTER_LINKS"]
 TELEGRAM_LINKS = os.environ["TELEGRAM_LINKS"]
 DISCORD_LINKS = os.environ["DISCORD_LINKS"]
+TELEGRAM_CHANNEL = os.environ["TELEGRAM_CHANNEL"]
+INSTAGRAM_LINK = os.environ["INSTAGRAM_LINK"]
 MAX_USERS = int(os.environ["MAX_USERS"])
 MAX_REFS = int(os.environ["MAX_REFS"])
 CAPTCHA_ENABLED = os.environ["CAPTCHA_ENABLED"]
@@ -83,78 +85,86 @@ if(EXPLORER_URL != ""):
 if(WEBSITE_URL != ""):
     WEBSITE_URL = f"\nWebsite: {WEBSITE_URL}"
 WELCOME_MESSAGE = f"""
-Hello, NAME! I am your friendly {COIN_NAME} Airdrop bot
-{SYMBOL}
-⭐️ For Joining - Get {AIRDROP_AMOUNT} {COIN_SYMBOL}
-⭐️ For each referral - Get {"{:,.2f}".format(REFERRAL_REWARD)} {COIN_SYMBOL}
+Hello, *NAME!* Welcome to Callicrypto Airdrop Event. I am your friendly Callicrypto airdrop bot. I will help you to join the event and get your rewards.
 
-📘By Participating you are agreeing to the {COIN_NAME} (Airdrop) Program Terms and Conditions. Please see pinned post for more information.
-Click "🚀 Join Airdrop" to proceed"""
+*Step 1:* Click *Join Airdrop* button and complete all mandatory tasks
+*Step 2:* Submit your details, including your wallet address
+*Step 3:* (optional): Increase your rewards by inviting your friends via your referral link
+
+🚨 Note:
+
++ Beware of scammers! We will never ask for your private keys or request any payments. Double-check all links and information before proceeding.
++ You can change your personal information after submitting
+
+"""
 tasks = ""
 
 PROCEED_MESSAGE = f"""
-🔹 Airdrop Reward = *{AIRDROP_AMOUNT} {COIN_SYMBOL}*
-🔹 Extra reward per referral = *{"{:,.2f}".format(REFERRAL_REWARD)} {COIN_SYMBOL}* (max {MAX_REFS}){SYMBOL}
+🟢 Join [Callicrypto Telegram group]({TELEGRAM_LINKS}) (make sure to pass the verification process) and [Callicrypto Telegram Channel]({TELEGRAM_CHANNEL}) (mandatory)
+🟢 Follow Callicrypto on [Twitter]({TWITTER_LINKS}) and retweet pinned post (mandatory)
+🟢 Invite your friends with your referral link (optional)
 
-📢 Airdrop Rules
+✅ Rules and Requirements:
 
-✏️ Mandatory Tasks:
-- Join our Telegram group(s)
-- Follow our Twitter page(s)
-- Join our Discord server(s)
+    - Participants must join our Telegram group and remain active until the end of the campaign.
+    - Follow our official Twitter account.
+    - Only one entry per person.
 
 NOTE: Users found cheating would be disqualified & banned immediately.
 
-Airdrop Date: *{AIRDROP_DATE}*{EXPLORER_URL}
-{WEBSITE_URL}
+📢 Referral Program:
+Refer your friends to the airdrop and earn extra Callicrypto tokens! Get your unique referral link after completing the airdrop form.
+
+🔗 Important Links:
+    - Website: {WEBSITE_URL}
+    - Whitepaper: https://doc.callicrypto.com/callicrypto/)
+    - Telegram: {TELEGRAM_LINKS}
+    - Twitter: {TWITTER_LINKS}
+    - Instagram: {INSTAGRAM_LINK}
+
 """
 
 MAKE_SURE_TELEGRAM = f"""
-🔹 Do not forget to join our Telegram group(s)
+🔹 Join Callicrypto group on Telegram and pass the verification process
 {TELEGRAM_LINKS}
 """
 
+MAKE_SURE_TELEGRAM_CHANNEL = f"""
+🔹 Join Callicrypto channel on Telegram
+{TELEGRAM_CHANNEL}
+"""
+
 FOLLOW_TWITTER_TEXT = f"""
-🔹 Follow our Twitter page(s)
+🔹 Follow Callicrypto on Twitter and retweet pinned post, then submit your Twitter URL: 
 {TWITTER_LINKS}
 """
 
-JOIN_DISCORD_TEXT = f'''
-🔹 Join our Discord server(s)
-{DISCORD_LINKS}
-'''
-
 SUBMIT_BEP20_TEXT = f"""
-Type in *your Wallet Address*
-
-Please make sure your wallet supports the *{AIRDROP_NETWORK}*
-
-Example:
-0xdEAD000000000000000042069420694206942069
-
-_Incorrect Details? Use_ /restart _command to start over._
+Type in your ERC-20 wallet address.
+Please make sure your wallet supports the {AIRDROP_NETWORK}.
+Example: 0xdEAD000000000000000042069420694206942069
+Incorrect Details? Use /restart command to start over.
 """
 
 JOINED = f"""
-Thank you!
-Rewards would be sent out automatically to your {AIRDROP_NETWORK} address on the {AIRDROP_DATE}
+🎉 Thank You! Rewards Await You! 🎉
 
-Don't forget to:
-🔸 Stay in the telegram channels
-🔸 Follow all the social media channels for the updates
+Your participation in the *Callicrypto Airdrop* is greatly appreciated! Get ready for exciting times ahead.
 
-Your personal referral link (+{"{:,.2f}".format(REFERRAL_REWARD)} {COIN_SYMBOL} for each referral)
+🔔 Important Reminders:
+
+    📢 Stay in the Telegram Channels: Stay connected with our vibrant community. Don't miss out on important updates and announcements!
+    🌐 Follow us on Social Media: For the latest news and discussions, make sure you're following all our social media channels.
+
+🔄 Referral Program:
+
+Maximize your rewards! Share your unique referral link and stand a chance to earn even more. The top 25 referrals will receive a bonus of 6000 tokens each!
 REPLACEME
 """
 
 WITHDRAWAL_TEXT = f"""
 Withdrawals would be sent out automatically to your {AIRDROP_NETWORK} address on the {AIRDROP_DATE}
 NOTE: Users found cheating would be disqualified & banned immediately."""
-
-BALANCE_TEXT = f"""
-{COIN_NAME} Airdrop Balance: *IARTBALANCE*
-Referral Balance: *REFERRALBALANCE*
-"""
 
 # %% Functions
 
@@ -276,22 +286,36 @@ def follow_telegram(update, context):
         [["Done"], ["Cancel"]]
     ))
 
-    return FOLLOW_TWITTER
+    return JOIN_TELEGRAM_CHANNEL
 
-def check_joined_channel(user):
+def check_joined_channel(user, tele_links):
     try:
-        for link in TELEGRAM_LINKS.split("\n"):
+        for link in tele_links.split("\n"):
             link ="@"+link.split("/")[-1]
             reply = telegram.bot.Bot(BOT_TOKEN).get_chat_member(link,user)
+            print(reply.status)
             if reply.status in ('left','kicked'):
                 return False
     except:
         return False
     return True
 
-def follow_twitter(update, context):
-    if not check_joined_channel(user = update.message.from_user.id):
+def join_telegram_channel(update, context):
+    if not check_joined_channel(user = update.message.from_user.id, tele_links = TELEGRAM_LINKS):
             update.message.reply_text(text=f'You have not joined\n {TELEGRAM_LINKS}\nPlease join first and click on "Done" to proceed', reply_markup=ReplyKeyboardMarkup(
+                [["Done"], ["Cancel"],["/restart"]]
+            ))
+            return JOIN_TELEGRAM_CHANNEL
+    update.message.reply_text(text=MAKE_SURE_TELEGRAM_CHANNEL)
+    update.message.reply_text(text="Please click on \"Done\" to proceed", parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(
+        [["Done"], ["Cancel"]]
+    ))
+
+    return FOLLOW_TWITTER
+
+def follow_twitter(update, context):
+    if not check_joined_channel(user = update.message.from_user.id, tele_links = TELEGRAM_CHANNEL):
+            update.message.reply_text(text=f'You have not joined\n {TELEGRAM_CHANNEL}\nPlease join first and click on "Done" to proceed', reply_markup=ReplyKeyboardMarkup(
                 [["Done"], ["Cancel"],["/restart"]]
             ))
             return FOLLOW_TWITTER
@@ -299,7 +323,7 @@ def follow_twitter(update, context):
     update.message.reply_text(text="Type in the link to *your Twitter profile* to proceed.\n\nExample: \nhttps://twitter.com/example", parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(
         [["Cancel"]]
     ))
-    return JOIN_DISCORD
+    return SUBMIT_ADDRESS
 
 
 def submit_address(update, context):
@@ -310,29 +334,12 @@ def submit_address(update, context):
         update.message.reply_text(text="Twitter Link Already Exists. Try again!\n\nExample: \nhttps://twitter.com/example", parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(
             [["Cancel"]]
         ))
-        return JOIN_DISCORD
-    USERINFO[user.id].update({"twitter_username": update.message.text.strip()})
-    update.message.reply_text(text=JOIN_DISCORD_TEXT, parse_mode=telegram.ParseMode.MARKDOWN)
-    update.message.reply_text(text="Type in *your Discord username* to proceed.\n\nExample: \nExample#1234 \n\n_Incorrect Details? Use_ /restart _command to start over._", parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(
-        [["Cancel"],["/restart"]]
-    ))
-    return SUBMIT_ADDRESS
-
-def submit_discord(update, context):
-    user = update.message.from_user
-    if not user.id in USERINFO:
-        return startAgain(update, context)
-    if users.find({"discord_username": update.message.text.strip()}).count() != 0:
-        update.message.reply_text(text="Discord Username Already Exists. Try again!\n\nExample: \nExample#1234", parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(
-            [["Cancel"],["/restart"]]
-        ))
         return SUBMIT_ADDRESS
-    USERINFO[user.id].update({"discord_username": update.message.text.strip()})
+    USERINFO[user.id].update({"twitter_username": update.message.text.strip()})
     update.message.reply_text(text=SUBMIT_BEP20_TEXT, parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(
         [["Cancel"],["/restart"]]
     ))
     return END_CONVERSATION
-
 
 def getName(user):
     first = user["first_name"]
@@ -426,11 +433,11 @@ def loopAnswer(update, context):
     print(info)
     message = update.message.text
     reply = ""
-    if(message == "💰 Balance"):
-        refbal = "{:,.2f}".format(info["refCount"]*REFERRAL_REWARD)
-        if(refbal == ""):
-            refbal = "0"
-        reply = BALANCE_TEXT.replace("IARTBALANCE", AIRDROP_AMOUNT).replace("REFERRALBALANCE", refbal)
+    # if(message == "💰 Balance"):
+    #     refbal = "{:,.2f}".format(info["refCount"]*REFERRAL_REWARD)
+    #     if(refbal == ""):
+    #         refbal = "0"
+    #     reply = BALANCE_TEXT.replace("IARTBALANCE", AIRDROP_AMOUNT).replace("REFERRALBALANCE", refbal)
 
     if(message == "ℹ️ Airdrop Info"):
         reply = PROCEED_MESSAGE
@@ -451,17 +458,15 @@ Here is *your referral link*
     if(message == "💾 My Data"):
         name = str(info["name"])
         refbal = "{:,.2f}".format(info["refCount"]*REFERRAL_REWARD)
-        balance = BALANCE_TEXT.replace("IARTBALANCE", AIRDROP_AMOUNT).replace("REFERRALBALANCE", refbal)
+        # balance = BALANCE_TEXT.replace("IARTBALANCE", AIRDROP_AMOUNT).replace("REFERRALBALANCE", refbal)
         refferals = str(info["refCount"])
         bep20Address = str(info["bep20"])
         twitterUsername = str(info["twitter_username"])
-        discordUsername = str(info.get("discord_username",""))
         reply = f"""
 Name: {name}
 Referrals: {refferals}
 {AIRDROP_NETWORK} address: {bep20Address}
 Twitter Username: {twitterUsername}
-Discord Username: {discordUsername}
 
 _Incorrect Details? Use_ /restart _command to start over._
 Don't worry, your referrals are safe.
@@ -495,13 +500,7 @@ def error_telegram(update,context):
 
 def error_twitter(update,context):
     update.message.reply_text(text="Invalid Twitter Link. Try again! \n\nExample: \nhttps://twitter.com/example", parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(
-        [["Cancel"]]
-    ))
-    return JOIN_DISCORD
-
-def error_discord(update,context):
-    update.message.reply_text(text="Invalid Discord Username. Try again!\n\nExample: \nExample#1234", parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(
-        [["Cancel"],["/restart"]]
+       [["Cancel"],["/restart"]]
     ))
     return SUBMIT_ADDRESS
 
@@ -519,19 +518,19 @@ def restart(update,context):
     return start(update,context)
 # %% Start bot
 reply_keyboard = [
-    ["💰 Balance", "ℹ️ Airdrop Info"],
+    ["ℹ️ Airdrop Info"],
     ["💸 Withdrawal", "🔗 Ref Link"],
     ["💾 My Data", "❌ Quit Airdrop"]
 ]
-PROCEED, FOLLOW_TELEGRAM, FOLLOW_TWITTER, SUBMIT_ADDRESS, JOIN_DISCORD,END_CONVERSATION, LOOP, SUREWANTTO, CAPTCHASTATE = range(9)
+PROCEED, FOLLOW_TELEGRAM, JOIN_TELEGRAM_CHANNEL , FOLLOW_TWITTER, SUBMIT_ADDRESS,END_CONVERSATION, LOOP, SUREWANTTO, CAPTCHASTATE = range(9)
 cancelHandler = MessageHandler(Filters.regex('^Cancel$'), cancel)
 reset_handler = CommandHandler('restart',restart)
 states = {
     PROCEED: [MessageHandler(Filters.regex('^🚀 Join Airdrop$'), submit_details), cancelHandler,reset_handler, MessageHandler(Filters.regex(".*"),error_airdrop)],
     FOLLOW_TELEGRAM: [MessageHandler(Filters.regex('^Submit Details$'), follow_telegram), cancelHandler,reset_handler, MessageHandler(Filters.regex(".*"),error_submitdetails)],
-    FOLLOW_TWITTER: [MessageHandler(Filters.regex('^Done$'), follow_twitter), cancelHandler,reset_handler, MessageHandler(Filters.regex(".*"),error_telegram)],
-    JOIN_DISCORD : [cancelHandler,MessageHandler(Filters.regex('^https://twitter.com/.*'), submit_address),reset_handler,MessageHandler(Filters.regex(".*"),error_twitter)],
-    SUBMIT_ADDRESS: [cancelHandler, MessageHandler(Filters.regex('^.*#[0-9]{4}$'), submit_discord),reset_handler,MessageHandler(Filters.regex(".*"),error_discord)],
+    JOIN_TELEGRAM_CHANNEL: [cancelHandler,MessageHandler(Filters.regex('^Done$'), join_telegram_channel),reset_handler,MessageHandler(Filters.regex(".*"),error_telegram)],
+    FOLLOW_TWITTER: [cancelHandler,MessageHandler(Filters.regex('^Done$'), follow_twitter),reset_handler,MessageHandler(Filters.regex(".*"),error_telegram)],
+    SUBMIT_ADDRESS: [cancelHandler, MessageHandler(Filters.regex('^https://twitter.com/.*'), submit_address),reset_handler,MessageHandler(Filters.regex(".*"),error_twitter)],
     END_CONVERSATION: [cancelHandler, MessageHandler(Filters.regex('^0x[a-fA-F0-9]{40}$'), end_conversation),reset_handler,MessageHandler(Filters.regex(".*"),error_bsc)],
     LOOP: [reset_handler,MessageHandler(
         Filters.text, loopAnswer
@@ -555,9 +554,9 @@ conv_handler = ConversationHandler(
 
 
 # %% Admin commands
-def get_refcount_balance(userid):
-    info = getUserInfo(userid)
-    return info["refCount"],float(info["refCount"])*float(REFERRAL_REWARD) + float(AIRDROP_AMOUNT.replace(",",""))
+# def get_refcount_balance(userid):
+#     info = getUserInfo(userid)
+#     return info["refCount"],float(info["refCount"])*float(REFERRAL_REWARD) + float(AIRDROP_AMOUNT.replace(",",""))
 
 def getList(update, context):
     user = update.message.from_user
@@ -568,7 +567,7 @@ def getList(update, context):
     with open("users.json", "w") as file:
         file.write("[")
         for document in list:
-            document["refcount"],document["balance"] = get_refcount_balance(document["userId"])
+            # document["refcount"],document["balance"] = get_refcount_balance(document["userId"])
             file.write(dumps(document))
             file.write(",")
         file.write("]")
